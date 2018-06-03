@@ -302,7 +302,9 @@ class ProposalTargetLayer(caffe.Layer):
                 is_pos_roi = True
                 if is_pos_roi:
                     # for each positive rois, create a t_mask having same size as rois size (and fill all values by -1)
-                    roi_mask = -1 * np.ones((h, w), dtype=np.float32)
+                    #roi_mask = -1 * np.ones((h, w), dtype=np.float32)
+                    roi_mask = -1 * np.ones((int(h), int(w)), dtype=np.float32)#FC  
+
                     if flipped:
                         # print ("==================================im_ind:" + str(p) + '_' + str(p2))
                         # print ("==================================gt_mask_ind:" + str(gt_mask_ind))
@@ -327,7 +329,7 @@ class ProposalTargetLayer(caffe.Layer):
                     # print ("x1o,y1o,x2o,y2o:" + str(x1o) + " " + str(y1o) + " " + str(x2o) + " " + str(y2o))#overlap
                     # print("x2o-x1o, y2o-y1o: " + str(x2o-x1o) + " " + str(y2o-y1o))
  
-                    mask_overlap = np.zeros((y2o-y1o, x2o-x1o), dtype=np.float32)
+                    mask_overlap = np.zeros((int(y2o-y1o), int(x2o-x1o)), dtype=np.float32)
  
  
                     #color_img = cv2.cvtColor((gt_mask*255), cv2.cv.CV_GRAY2RGB)
@@ -336,7 +338,7 @@ class ProposalTargetLayer(caffe.Layer):
                     cv2.rectangle(color_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 8) #plot roi with Red
                     cv2.rectangle(color_img, (int(x1t), int(y1t)), (int(x2t), int(y2t)), (255, 0, 0), 4)  # plot gt with Blue
                     cv2.rectangle(color_img, (int(x1o), int(y1o)), (int(x2o), int(y2o)), (0, 255, 0), 2)  # plot overlap with Green
-                    mask_overlap_draw = color_img[y1o:y2o, x1o:x2o, :]
+                    mask_overlap_draw = color_img[int(y1o):int(y2o), int(x1o):int(x2o), :]
                     
                     if verbose_showim:
                         cv2.imshow("color_img", color_img)
@@ -344,12 +346,12 @@ class ProposalTargetLayer(caffe.Layer):
                         cv2.waitKey(0)
                     
  
-                    mask_overlap[:, :] = gt_mask[y1o:y2o, x1o:x2o]        
+                    mask_overlap[:, :] = gt_mask[int(y1o):int(y2o), int(x1o):int(x2o)]        
                     
                 
                 if roi_mask.shape[0] > 3 and roi_mask.shape[1] > 3:  #only resize if shape != (0, 0)
                 
-                    roi_mask[(y1o-y1):(y2o-y1), (x1o-x1):(x2o-x1)] = mask_overlap
+                    roi_mask[int(y1o-y1):int(y2o-y1), int(x1o-x1):int(x2o-x1)] = mask_overlap
             
                     original_uni_ids = np.unique(roi_mask)
             
@@ -529,6 +531,8 @@ def _get_bbox_regression_labels(bbox_target_data, num_classes):
         cls = clss[ind]
         start = 4 * cls
         end = start + 4
+        start = int(start)
+        end = int(end)
         bbox_targets[ind, start:end] = bbox_target_data[ind, 1:] #gan gia tri tai class tuong ung la bbox_target_data, con lai la so 0
         bbox_inside_weights[ind, start:end] = cfg.TRAIN.BBOX_INSIDE_WEIGHTS
     return bbox_targets, bbox_inside_weights
@@ -574,7 +578,7 @@ def _sample_rois(all_rois, gt_boxes, fg_rois_per_image, rois_per_image, num_clas
     fg_rois_per_this_image = min(fg_rois_per_image, fg_inds.size)
     # Sample foreground regions without replacement
     if fg_inds.size > 0:
-        fg_inds = npr.choice(fg_inds, size=fg_rois_per_this_image, replace=False)
+        fg_inds = npr.choice(fg_inds, size=int(fg_rois_per_this_image), replace=False)
 
     # Select background RoIs as those within [BG_THRESH_LO, BG_THRESH_HI)
     bg_inds = np.where((max_overlaps < cfg.TRAIN.BG_THRESH_HI) &
@@ -585,14 +589,14 @@ def _sample_rois(all_rois, gt_boxes, fg_rois_per_image, rois_per_image, num_clas
     bg_rois_per_this_image = min(bg_rois_per_this_image, bg_inds.size)
     # Sample background regions without replacement
     if bg_inds.size > 0:
-        bg_inds = npr.choice(bg_inds, size=bg_rois_per_this_image, replace=False)
+        bg_inds = npr.choice(bg_inds, size=int(bg_rois_per_this_image), replace=False)
 
     # The indices that we're selecting (both fg and bg)
     keep_inds = np.append(fg_inds, bg_inds)
     # Select sampled values from various arrays:
     labels = labels[keep_inds]
     # Clamp labels for the background RoIs to 0
-    labels[fg_rois_per_this_image:] = 0
+    labels[int(fg_rois_per_this_image):] = 0
     rois = all_rois[keep_inds]
     # positive rois
     rois_pos = np.zeros((fg_inds.size, 5), dtype=np.float32) #because return rois_pos as top ---> allocate memory for it

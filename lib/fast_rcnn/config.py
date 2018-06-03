@@ -49,10 +49,10 @@ __C.TRAIN.SCALES = (600,)
 __C.TRAIN.MAX_SIZE = 1000 
 
 # Images to use per minibatch
-__C.TRAIN.IMS_PER_BATCH = 8 
+__C.TRAIN.IMS_PER_BATCH = 4
 
 # Minibatch size (number of regions of interest [ROIs]) for training RCNN (not RPN)
-__C.TRAIN.BATCH_SIZE = 32 
+__C.TRAIN.BATCH_SIZE = 4 
 
 # Fraction of minibatch that is labeled foreground (i.e. class > 0)
 __C.TRAIN.FG_FRACTION = 0.25
@@ -67,7 +67,7 @@ __C.TRAIN.BG_THRESH_HI = 0.5
 __C.TRAIN.BG_THRESH_LO = 0.1
 
 # Use vertical-flipped images during training (left<->right).
-__C.TRAIN.USE_FLIPPED = True
+__C.TRAIN.USE_FLIPPED = False
 #__C.TRAIN.USE_FLIPPED = False
 #__C.TRAIN.USE_FLIPPED = False
 # Train bounding-box regressors
@@ -201,7 +201,9 @@ __C.DEDUP_BOXES = 1./16.
 __C.PIXEL_MEANS = np.array([[[102.9801, 115.9465, 122.7717]]])
 
 # For reproducibility
-__C.RNG_SEED = 3
+__C.RNG_SEED = 7
+
+__C.BBOX_XFORM_CLIP = np.log(1000. / 16.)
 
 # A small number that's used many times
 __C.EPS = 1e-14

@@ -229,6 +229,14 @@ class pascal_voc(imdb):
             y1 = float(bbox.find('ymin').text)
             x2 = float(bbox.find('xmax').text)
             y2 = float(bbox.find('ymax').text)
+            #if x1 > x2 or y1 > y2 or x1 > 1000 or y1 > 1000:
+            #  print 'x1 = ' + str(x1)
+            #  print 'y1 = ' + str(y1)
+            #  print 'x2 = ' + str(x2)
+            #  print 'y2 = ' + str(y2)
+            #  print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`'
+            #  print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`' 
+
 
             cls = self._class_to_ind[obj.find('name').text.lower().strip()]
             boxes[ix, :] = [x1, y1, x2, y2]

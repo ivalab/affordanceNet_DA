@@ -6,6 +6,7 @@
 # --------------------------------------------------------
 
 import numpy as np
+from fast_rcnn.config import cfg
 
 def bbox_transform(ex_rois, gt_rois):
     ex_widths = ex_rois[:, 2] - ex_rois[:, 0] + 1.0
@@ -45,6 +46,19 @@ def bbox_transform_inv(boxes, deltas):
 
     pred_ctr_x = dx * widths[:, np.newaxis] + ctr_x[:, np.newaxis]
     pred_ctr_y = dy * heights[:, np.newaxis] + ctr_y[:, np.newaxis]
+    #print "dx = " + str(dx) 
+    #print "dy = " + str(dy) 
+    #print "dh = " + str(dh) 
+    #print "dw = " + str(dw) 
+    #print "width = " + str(widths[:, np.newaxis])
+    # Prevent sending too large values into np.exp()
+    #dw = np.minimum(dw, cfg.BBOX_XFORM_CLIP)
+    #dh = np.minimum(dh, cfg.BBOX_XFORM_CLIP)
+
+    #print "cf = " + str(cfg.BBOX_XFORM_CLIP)
+    #print "dh_new = " + str(dh) 
+    #print "dw_new = " + str(dw) 
+
     pred_w = np.exp(dw) * widths[:, np.newaxis]
     pred_h = np.exp(dh) * heights[:, np.newaxis]
 
