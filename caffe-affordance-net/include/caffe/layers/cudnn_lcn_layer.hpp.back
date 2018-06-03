@@ -1,5 +1,5 @@
-#ifndef CAFFE_CUDNN_TANH_LAYER_HPP_
-#define CAFFE_CUDNN_TANH_LAYER_HPP_
+#ifndef CAFFE_CUDNN_LCN_LAYER_HPP_
+#define CAFFE_CUDNN_LCN_LAYER_HPP_
 
 #include <vector>
 
@@ -7,25 +7,23 @@
 #include "caffe/layer.hpp"
 #include "caffe/proto/caffe.pb.h"
 
-#include "caffe/layers/neuron_layer.hpp"
-#include "caffe/layers/tanh_layer.hpp"
+#include "caffe/layers/lrn_layer.hpp"
+#include "caffe/layers/power_layer.hpp"
 
 namespace caffe {
 
 #ifdef USE_CUDNN
-/**
- * @brief CuDNN acceleration of TanHLayer.
- */
 template <typename Dtype>
-class CuDNNTanHLayer : public TanHLayer<Dtype> {
+class CuDNNLCNLayer : public LRNLayer<Dtype> {
  public:
-  explicit CuDNNTanHLayer(const LayerParameter& param)
-      : TanHLayer<Dtype>(param), handles_setup_(false) {}
+  explicit CuDNNLCNLayer(const LayerParameter& param)
+      : LRNLayer<Dtype>(param), handles_setup_(false), tempDataSize(0),
+        tempData1(NULL), tempData2(NULL) {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
-  virtual ~CuDNNTanHLayer();
+  virtual ~CuDNNLCNLayer();
 
  protected:
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
@@ -35,12 +33,17 @@ class CuDNNTanHLayer : public TanHLayer<Dtype> {
 
   bool handles_setup_;
   cudnnHandle_t             handle_;
-  cudnnTensorDescriptor_t bottom_desc_;
-  cudnnTensorDescriptor_t top_desc_;
-  cudnnActivationDescriptor_t activ_desc_;
+  cudnnLRNDescriptor_t norm_desc_;
+  cudnnTensorDescriptor_t bottom_desc_, top_desc_;
+
+  int size_, pre_pad_;
+  Dtype alpha_, beta_, k_;
+
+  size_t tempDataSize;
+  void *tempData1, *tempData2;
 };
 #endif
 
 }  // namespace caffe
 
-#endif  // CAFFE_CUDNN_TANH_LAYER_HPP_
+#endif  // CAFFE_CUDNN_LCN_LAYER_HPP_

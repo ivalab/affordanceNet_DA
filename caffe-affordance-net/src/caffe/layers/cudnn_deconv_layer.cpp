@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "caffe/layers/cudnn_conv_layer.hpp"
+#include "caffe/layers/cudnn_deconv_layer.hpp"
 
 namespace caffe {
 
@@ -15,9 +15,9 @@ namespace caffe {
  * TODO(dox) explain cuDNN interface
  */
 template <typename Dtype>
-void CuDNNConvolutionLayer<Dtype>::LayerSetUp(
+void CuDNNDeconvolutionLayer<Dtype>::LayerSetUp(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
-  ConvolutionLayer<Dtype>::LayerSetUp(bottom, top);
+  DeconvolutionLayer<Dtype>::LayerSetUp(bottom, top);
   // Initialize CUDA streams and cuDNN.
   stream_         = new cudaStream_t[this->group_ * CUDNN_STREAMS_PER_GROUP];
   handle_         = new cudnnHandle_t[this->group_ * CUDNN_STREAMS_PER_GROUP];
@@ -63,8 +63,10 @@ void CuDNNConvolutionLayer<Dtype>::LayerSetUp(
   const int kernel_h = kernel_shape_data[0];
   const int kernel_w = kernel_shape_data[1];
   cudnn::createFilterDesc<Dtype>(&filter_desc_,
-      this->num_output_ / this->group_, this->channels_ / this->group_,
-      kernel_h, kernel_w);
+                                 this->channels_ / this->group_,
+                                 this->num_output_ / this->group_,
+                                 kernel_h,
+                                 kernel_w);
 
   // Create tensor descriptor(s) for data and corresponding convolution(s).
   for (int i = 0; i < bottom.size(); i++) {
@@ -88,11 +90,11 @@ void CuDNNConvolutionLayer<Dtype>::LayerSetUp(
 }
 
 template <typename Dtype>
-void CuDNNConvolutionLayer<Dtype>::Reshape(
+void CuDNNDeconvolutionLayer<Dtype>::Reshape(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
-  ConvolutionLayer<Dtype>::Reshape(bottom, top);
+  DeconvolutionLayer<Dtype>::Reshape(bottom, top);
   CHECK_EQ(2, this->num_spatial_axes_)
-      << "CuDNNConvolution input must have 2 spatial axes "
+      << "CuDNNDeconvolutionLayer input must have 2 spatial axes "
       << "(e.g., height and width). "
       << "Use 'engine: CAFFE' for general ND convolution.";
   bottom_offset_ = this->bottom_dim_ / this->group_;
@@ -114,58 +116,114 @@ void CuDNNConvolutionLayer<Dtype>::Reshape(
 
   for (int i = 0; i < bottom.size(); i++) {
     cudnn::setTensor4dDesc<Dtype>(&bottom_descs_[i],
-        this->num_,
-        this->channels_ / this->group_, height, width,
-        this->channels_ * height * width,
-        height * width, width, 1);
+                                  this->num_,
+                                  this->channels_ / this->group_,
+                                  height,
+                                  width,
+                                  this->channels_ * height * width,
+                                  height * width,
+                                  width,
+                                  1);
     cudnn::setTensor4dDesc<Dtype>(&top_descs_[i],
-        this->num_,
-        this->num_output_ / this->group_, height_out, width_out,
-        this->num_output_ * this->out_spatial_dim_,
-        this->out_spatial_dim_, width_out, 1);
-    cudnn::setConvolutionDesc<Dtype>(&conv_descs_[i], bottom_descs_[i],
-        filter_desc_, pad_h, pad_w,
-        stride_h, stride_w);
+                                  this->num_,
+                                  this->num_output_ / this->group_,
+                                  height_out,
+                                  width_out,
+                                  this->num_output_ * height_out * width_out,
+                                  height_out * width_out,
+                                  width_out,
+                                  1);
+    cudnn::setConvolutionDesc<Dtype>(&conv_descs_[i],
+                                     top_descs_[i],
+                                     filter_desc_,
+                                     pad_h,
+                                     pad_w,
+                                     stride_h,
+                                     stride_w);
 
     // choose forward and backward algorithms + workspace(s)
-    CUDNN_CHECK(cudnnGetConvolutionForwardAlgorithm(handle_[0],
-      bottom_descs_[i],
-      filter_desc_,
-      conv_descs_[i],
-      top_descs_[i],
-      CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT,
-      workspace_limit_bytes,
-      &fwd_algo_[i]));
+    CUDNN_CHECK(cudnnGetConvolutionForwardAlgorithm(
+        handle_[0],
+        top_descs_[i],
+        filter_desc_,
+        conv_descs_[i],
+        bottom_descs_[i],
+        CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT,
+        workspace_limit_bytes,
+        &fwd_algo_[i]));
 
-    CUDNN_CHECK(cudnnGetConvolutionForwardWorkspaceSize(handle_[0],
-      bottom_descs_[i],
-      filter_desc_,
-      conv_descs_[i],
-      top_descs_[i],
-      fwd_algo_[i],
-      &(workspace_fwd_sizes_[i])));
+    // We have found that CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM is
+    // buggy. Thus, if this algo was chosen, choose winograd instead. If
+    // winograd is not supported or workspace is larger than threshold, choose
+    // implicit_gemm instead.
+    if (fwd_algo_[i] == CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM) {
+      size_t winograd_workspace_size;
+      cudnnStatus_t status = cudnnGetConvolutionForwardWorkspaceSize(
+          handle_[0],
+          top_descs_[i],
+          filter_desc_,
+          conv_descs_[i],
+          bottom_descs_[i],
+          CUDNN_CONVOLUTION_FWD_ALGO_WINOGRAD,
+          &winograd_workspace_size);
+      if (status != CUDNN_STATUS_SUCCESS ||
+          winograd_workspace_size >= workspace_limit_bytes) {
+        fwd_algo_[i] = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
+      } else {
+        fwd_algo_[i] = CUDNN_CONVOLUTION_FWD_ALGO_WINOGRAD;
+      }
+    }
+
+    CUDNN_CHECK(cudnnGetConvolutionForwardWorkspaceSize(
+        handle_[0],
+        top_descs_[i],
+        filter_desc_,
+        conv_descs_[i],
+        bottom_descs_[i],
+        fwd_algo_[i],
+        &(workspace_fwd_sizes_[i])));
 
     // choose backward algorithm for filter
-    CUDNN_CHECK(cudnnGetConvolutionBackwardFilterAlgorithm(handle_[0],
-          bottom_descs_[i], top_descs_[i], conv_descs_[i], filter_desc_,
-          CUDNN_CONVOLUTION_BWD_FILTER_SPECIFY_WORKSPACE_LIMIT,
-          workspace_limit_bytes, &bwd_filter_algo_[i]) );
+    CUDNN_CHECK(cudnnGetConvolutionBackwardFilterAlgorithm(
+        handle_[0],
+        top_descs_[i],
+        bottom_descs_[i],
+        conv_descs_[i],
+        filter_desc_,
+        CUDNN_CONVOLUTION_BWD_FILTER_SPECIFY_WORKSPACE_LIMIT,
+        workspace_limit_bytes,
+        &bwd_filter_algo_[i]));
 
     // get workspace for backwards filter algorithm
-    CUDNN_CHECK(cudnnGetConvolutionBackwardFilterWorkspaceSize(handle_[0],
-          bottom_descs_[i], top_descs_[i], conv_descs_[i], filter_desc_,
-          bwd_filter_algo_[i], &workspace_bwd_filter_sizes_[i]));
+    CUDNN_CHECK(cudnnGetConvolutionBackwardFilterWorkspaceSize(
+        handle_[0],
+        top_descs_[i],
+        bottom_descs_[i],
+        conv_descs_[i],
+        filter_desc_,
+        bwd_filter_algo_[i],
+        &workspace_bwd_filter_sizes_[i]));
 
     // choose backward algo for data
-    CUDNN_CHECK(cudnnGetConvolutionBackwardDataAlgorithm(handle_[0],
-          filter_desc_, top_descs_[i], conv_descs_[i], bottom_descs_[i],
-          CUDNN_CONVOLUTION_BWD_DATA_SPECIFY_WORKSPACE_LIMIT,
-        workspace_limit_bytes, &bwd_data_algo_[i]));
+    CUDNN_CHECK(cudnnGetConvolutionBackwardDataAlgorithm(
+        handle_[0],
+        filter_desc_,
+        bottom_descs_[i],
+        conv_descs_[i],
+        top_descs_[i],
+        CUDNN_CONVOLUTION_BWD_DATA_SPECIFY_WORKSPACE_LIMIT,
+        workspace_limit_bytes,
+        &bwd_data_algo_[i]));
 
     // get workspace size
-    CUDNN_CHECK(cudnnGetConvolutionBackwardDataWorkspaceSize(handle_[0],
-          filter_desc_, top_descs_[i], conv_descs_[i], bottom_descs_[i],
-          bwd_data_algo_[i], &workspace_bwd_data_sizes_[i]) );
+    CUDNN_CHECK(cudnnGetConvolutionBackwardDataWorkspaceSize(
+        handle_[0],
+        filter_desc_,
+        bottom_descs_[i],
+        conv_descs_[i],
+        top_descs_[i],
+        bwd_data_algo_[i],
+        &workspace_bwd_data_sizes_[i]));
   }
 
   // reduce over all workspace sizes to get a maximum to allocate / reallocate
@@ -204,7 +262,7 @@ void CuDNNConvolutionLayer<Dtype>::Reshape(
         workspace_fwd_sizes_[i] = 0;
         workspace_bwd_filter_sizes_[i] = 0;
         workspace_bwd_data_sizes_[i] = 0;
-        fwd_algo_[i] = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
+        fwd_algo_[i] = CUDNN_CONVOLUTION_FWD_ALGO_FFT_TILING;
         bwd_filter_algo_[i] = CUDNN_CONVOLUTION_BWD_FILTER_ALGO_0;
         bwd_data_algo_[i] = CUDNN_CONVOLUTION_BWD_DATA_ALGO_0;
       }
@@ -226,13 +284,13 @@ void CuDNNConvolutionLayer<Dtype>::Reshape(
 
   // Tensor descriptor for bias.
   if (this->bias_term_) {
-    cudnn::setTensor4dDesc<Dtype>(&bias_desc_,
-        1, this->num_output_ / this->group_, 1, 1);
+    cudnn::setTensor4dDesc<Dtype>(
+        &bias_desc_, 1, this->num_output_ / this->group_, 1, 1);
   }
 }
 
 template <typename Dtype>
-CuDNNConvolutionLayer<Dtype>::~CuDNNConvolutionLayer() {
+CuDNNDeconvolutionLayer<Dtype>::~CuDNNDeconvolutionLayer() {
   // Check that handles have been setup before destroying.
   if (!handles_setup_) { return; }
 
@@ -263,7 +321,7 @@ CuDNNConvolutionLayer<Dtype>::~CuDNNConvolutionLayer() {
   delete [] workspace_bwd_filter_sizes_;
 }
 
-INSTANTIATE_CLASS(CuDNNConvolutionLayer);
+INSTANTIATE_CLASS(CuDNNDeconvolutionLayer);
 
 }   // namespace caffe
 #endif

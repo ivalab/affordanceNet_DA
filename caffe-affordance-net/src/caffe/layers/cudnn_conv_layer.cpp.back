@@ -252,7 +252,6 @@ CuDNNConvolutionLayer<Dtype>::~CuDNNConvolutionLayer() {
   }
 
   cudaFree(workspaceData);
-  delete [] workspace;
   delete [] stream_;
   delete [] handle_;
   delete [] fwd_algo_;
