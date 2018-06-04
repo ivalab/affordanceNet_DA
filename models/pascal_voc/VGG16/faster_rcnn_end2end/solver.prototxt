@@ -1,5 +1,5 @@
 train_net: "models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt"
-base_lr: 0.0009
+base_lr: 0.0008
 lr_policy: "step"
 gamma: 0.1 # drop the learning rate by a factor of 10
 stepsize: 150000 # drop the learning rate every 150K iterations

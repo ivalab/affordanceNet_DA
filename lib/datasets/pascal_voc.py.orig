@@ -37,8 +37,7 @@ class pascal_voc(imdb):
         #                 'sheep', 'sofa', 'train', 'tvmonitor')
 
 		## IIT Dataset
-        #self._classes = ('__background__', 'bowl', 'tvm', 'pan', 'hammer', 'knife', 'cup', 'drill', 'racket', 'spatula', 'bottle')
-        self._classes = ('__background__', 'bowl', 'cup', 'hammer', 'knife', 'ladle', 'mallet', 'mug', 'pot', 'saw', 'scissors','scoop','shears','shovel','spoon','tenderizer','trowel','turner')
+        self._classes = ('__background__', 'bowl', 'tvm', 'pan', 'hammer', 'knife', 'cup', 'drill', 'racket', 'spatula', 'bottle')
 
                          
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))

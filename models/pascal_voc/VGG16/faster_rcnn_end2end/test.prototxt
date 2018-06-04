@@ -556,7 +556,7 @@ layer {
   }
   inner_product_param {
     #num_output: 21 #21 for pascal, 81 for coco
-    num_output: 11 #11 for IIT
+    num_output: 18 #11 for IIT
     weight_filler {
       type: "gaussian"
       std: 0.01
@@ -582,7 +582,7 @@ layer {
   }
   inner_product_param {
     #num_output: 84 #84=4x21: VOC. 324= 4x81:COCO, i.e., box coordinate for each class
-    num_output: 44 #44=4x11: for IIT dataset
+    num_output: 72 #44=4x11: for IIT dataset
     weight_filler {
       type: "gaussian"
       std: 0.001
@@ -853,7 +853,7 @@ layer {
     #num_output: 1# output will be 1x1x14x14 --> for using SigmoidCrossEntropyLoss
     #num_output: 2#  output will be 1x2x14x14 --> for using Softmax. Actually, binomial cross-entropy loss (sigmoid + cross entropy) = logistic regression = two classes softmax regression
     #num_output: 10#  output will be 1x10x14x14 --> for using Softmax for 10 class -- IIT
-    num_output: 10	
+    num_output: 8	
     kernel_size: 1 pad: 0 
     weight_filler {type: "gaussian" std: 0.01 } #weight_filler { type: "xavier" }
     bias_filler { type: "constant" value: 0 }
