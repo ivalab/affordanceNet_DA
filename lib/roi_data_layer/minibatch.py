@@ -308,7 +308,15 @@ def get_minibatch(roidb, num_classes):
     im_blob, im_scales = _get_image_blob(roidb, random_scale_inds) #im_blob la image sau khi scale ve 600 x X hoac X x 1000
  
     blobs = {'data': im_blob}
- 
+    im_name = roidb[0]['image']
+    if im_name.find("source_") == -1: # synthia image
+        blobs['need_backprop'] = np.zeros((1,),dtype=np.float32)
+        blobs['dc_label'] = np.zeros((2000, 1),dtype=np.float32)
+
+    else: # pascal image
+        blobs['need_backprop'] = np.ones((1,),dtype=np.float32)
+        blobs['dc_label'] = np.ones((2000, 1),dtype=np.float32)
+        
     if cfg.TRAIN.HAS_RPN: #=TRUE neu la end2end (xem file faster_rcnn_end2end.yml)
         assert len(im_scales) == 1, "Single batch only"
         assert len(roidb) == 1, "Single batch only"
