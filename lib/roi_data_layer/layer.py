@@ -113,6 +113,7 @@ class RoIDataLayer(caffe.Layer):
                 self._name_to_top_map['flipped'] = idx
                 idx += 1
 
+            
         else: # not using RPN
             # rois blob: holds R regions of interest, each is a 5-tuple
             # (n, x1, y1, x2, y2) specifying an image batch index n and a

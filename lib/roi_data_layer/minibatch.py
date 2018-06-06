@@ -308,6 +308,7 @@ def get_minibatch(roidb, num_classes):
     im_blob, im_scales = _get_image_blob(roidb, random_scale_inds) #im_blob la image sau khi scale ve 600 x X hoac X x 1000
  
     blobs = {'data': im_blob}
+
  
     if cfg.TRAIN.HAS_RPN: #=TRUE neu la end2end (xem file faster_rcnn_end2end.yml)
         assert len(im_scales) == 1, "Single batch only"
