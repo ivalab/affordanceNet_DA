@@ -18,7 +18,8 @@ class LabelResizeLayer(caffe.Layer):
     def setup(self, bottom, top):
 
         feats = bottom[0].data
-        top[0].reshape(1,1,feats.shape[2],feats.shape[3])
+        #top[0].reshape(1,1,feats.shape[2],feats.shape[3])
+        top[0].reshape(feats.shape[0],1,feats.shape[2],feats.shape[3])
 
     def forward(self, bottom, top):
         feats = bottom[0].data
@@ -26,15 +27,18 @@ class LabelResizeLayer(caffe.Layer):
 
         lbs_resize = cv2.resize(lbs, (feats.shape[3],feats.shape[2]),  interpolation=cv2.INTER_NEAREST)
 
-        gt_blob = np.zeros((1, lbs_resize.shape[0], lbs_resize.shape[1], 1), dtype=np.float32)
-        gt_blob[0, 0:lbs_resize.shape[0], 0:lbs_resize.shape[1], 0] = lbs_resize
+        gt_blob = np.zeros((feats.shape[0], lbs_resize.shape[0], lbs_resize.shape[1], 1), dtype=np.float32)
+        #gt_blob[0, 0:lbs_resize.shape[0], 0:lbs_resize.shape[1], 0] = lbs_resize
+        lbs_resize_duplicated = np.repeat(lbs_resize[:, :, np.newaxis], feats.shape[0], axis=2)
+
+        gt_blob[0:feats.shape[0], 0:lbs_resize.shape[0], 0:lbs_resize.shape[1], 0] = lbs_resize_duplicated.transpose((2,0,1))
 
         channel_swap = (0, 3, 1, 2)
         gt_blob = gt_blob.transpose(channel_swap)
 
         top[0].reshape(*gt_blob.shape)
-        top[0].data[...] = gt_blob
-        
+        top[0].data[...] = gt_blob       
+
     def backward(self, top, propagate_down, bottom):
         pass
 

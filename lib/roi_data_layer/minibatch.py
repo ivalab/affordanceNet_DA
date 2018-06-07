@@ -311,7 +311,7 @@ def get_minibatch(roidb, num_classes):
     im_name = roidb[0]['image'] #full name
     im_name_base = os.path.basename(im_name)
 
-    if int(os.path.splitext(im_name_base)[0]) > 10000: # target image
+    if int(os.path.splitext(im_name_base)[0]) > 36800: # target image
         blobs['need_backprop'] = np.zeros((1,),dtype=np.float32)
         blobs['dc_label'] = np.zeros((2000, 1),dtype=np.float32)
 
