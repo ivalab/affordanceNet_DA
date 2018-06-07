@@ -42,7 +42,7 @@ class ProposalLayer(caffe.Layer):
         # rois blob: holds R regions of interest, each is a 5-tuple
         # (n, x1, y1, x2, y2) specifying an image batch index n and a
         # rectangle (x1, y1, x2, y2)
-        top[0].reshape(1, 5)
+        top[0].reshape(2000, 5)
 
         # scores blob: holds scores for R regions of interest
         if len(top) > 1:

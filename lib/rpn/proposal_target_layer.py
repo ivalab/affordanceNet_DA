@@ -50,23 +50,23 @@ class ProposalTargetLayer(caffe.Layer):
         self._num_classes = layer_params['num_classes']
 
         # sampled rois (0, x1, y1, x2, y2)
-        top[0].reshape(1, 5)
+        top[0].reshape(cfg.TRAIN.BATCH_SIZE, 5)
         # labels
-        top[1].reshape(1, 1)
+        top[1].reshape(cfg.TRAIN.BATCH_SIZE, 1)
         # bbox_targets
-        top[2].reshape(1, self._num_classes * 4) #(x1, y1, x2, y2, cls)
+        top[2].reshape(cfg.TRAIN.BATCH_SIZE, self._num_classes * 4) #(x1, y1, x2, y2, cls)
         # bbox_inside_weights
-        top[3].reshape(1, self._num_classes * 4)
+        top[3].reshape(cfg.TRAIN.BATCH_SIZE, self._num_classes * 4)
         # bbox_outside_weights
-        top[4].reshape(1, self._num_classes * 4)
+        top[4].reshape(cfg.TRAIN.BATCH_SIZE, self._num_classes * 4)
 
         if cfg.TRAIN.MASK_REG:
             ###################### mask targets###############
             #top[5].reshape(1, self._num_classes * cfg.TRAIN.MASK_SIZE * cfg.TRAIN.MASK_SIZE) #cfg.TRAIN.MASK_SIZE = 14 or 28
             #top[5].reshape(1, 1 * cfg.TRAIN.MASK_SIZE * cfg.TRAIN.MASK_SIZE) #Class-agnostic mask.
-            top[5].reshape(1, cfg.TRAIN.MASK_SIZE, cfg.TRAIN.MASK_SIZE) #segmentation mask for positive rois
+            top[5].reshape(cfg.TRAIN.BATCH_SIZE, cfg.TRAIN.MASK_SIZE, cfg.TRAIN.MASK_SIZE) #segmentation mask for positive rois
             ####incase output rois_pos
-            top[6].reshape(1, 5) #positive rois for mask branch
+            top[6].reshape(cfg.TRAIN.BATCH_SIZE, 5) #positive rois for mask branch
             ##################################################
 
     def forward(self, bottom, top):

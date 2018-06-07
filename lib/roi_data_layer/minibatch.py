@@ -12,7 +12,7 @@ import numpy.random as npr
 import cv2
 from fast_rcnn.config import cfg
 from utils.blob import prep_im_for_blob, im_list_to_blob, crop_pad_im_for_blob
-
+import os
 
 print_verbose = 0
 
@@ -308,8 +308,10 @@ def get_minibatch(roidb, num_classes):
     im_blob, im_scales = _get_image_blob(roidb, random_scale_inds) #im_blob la image sau khi scale ve 600 x X hoac X x 1000
  
     blobs = {'data': im_blob}
-    im_name = roidb[0]['image']
-    if im_name.find("source_") == -1: # synthia image
+    im_name = roidb[0]['image'] #full name
+    im_name_base = os.path.basename(im_name)
+
+    if int(os.path.splitext(im_name_base)[0]) > 10000: # target image
         blobs['need_backprop'] = np.zeros((1,),dtype=np.float32)
         blobs['dc_label'] = np.zeros((2000, 1),dtype=np.float32)
 
