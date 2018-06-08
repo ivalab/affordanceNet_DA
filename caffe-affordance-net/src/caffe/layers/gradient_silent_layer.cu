@@ -24,9 +24,11 @@ void GradientSilentLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const Dtype need_backprop = need_backprop_handle[0];
 
     if(need_backprop!=Dtype(0)){
+        //std::cout<<"need backprop"<<std::endl;
         caffe_gpu_scale(count, Dtype(1), top_diff, bottom_diff);
         }
     else{
+        //std::cout<<"not need backprop"<<std::endl;
         caffe_gpu_scale(count, Dtype(0), top_diff, bottom_diff);
         }
   }

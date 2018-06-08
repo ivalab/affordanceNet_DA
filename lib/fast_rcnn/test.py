@@ -226,6 +226,32 @@ def im_detect2(net, im, boxes=None):
         assert len(im_scales) == 1, "Only single-image batch implemented"
         rois = net.blobs['rois'].data.copy()
         boxes = rois[:,1:5] / im_scales[0]
+
+    #################### VISUALIZATION BLOB #######################
+
+    # import matplotlib.pyplot as plt
+    # conv5_2 = net.blobs['conv5_2'].data.copy()
+    #
+    # fig = plt.figure(figsize=(20, 20))
+    # columns = 10
+    # rows = 10
+    # for i in range(1, columns * rows + 1):
+    #     img = conv5_2[0,i,:,:]
+    #     fig.add_subplot(rows, columns, i)
+    #     plt.imshow(img)
+    #
+    # plt.savefig('gazebo2UMD_gazebo_conv5_2_100.png')
+
+    # import matplotlib.pyplot as plt
+    # fc7 = net.blobs['fc7'].data.copy()
+    #
+    # fig = plt.figure(figsize=(20, 20))
+    # img = fc7[0:100,0:500]
+    # plt.imshow(img)
+    # plt.savefig('gazebo_gazebo_fc7_100X500.png')
+
+    #################### VISUALIZATION BLOB #######################
+
     if cfg.TEST.SVM:
         # use the raw scores before softmax under the assumption they
         # were trained as linear SVMs
