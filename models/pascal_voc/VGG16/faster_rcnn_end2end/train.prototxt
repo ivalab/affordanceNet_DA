@@ -957,24 +957,9 @@ layer {
 }
 
 layer {
-  name: "slice_mask"
-  type: "Slice"
-  bottom: "mask_deconv3"
-  top: "mask_deconv3_all"
-  top: "mask_deconv3_16"
-  slice_param {
-    axis: 0
-    slice_point: 6
-  }
-  include: { phase: TRAIN }
-}
-
-
-
-layer {
   name: "mask_score"
   type: "Convolution"
-  bottom: "mask_deconv3_16" #
+  bottom: "mask_deconv3" #
   top: "mask_score"
   param { lr_mult: 1.0 decay_mult: 1.0 }
   param { lr_mult: 2.0 decay_mult: 0 }
@@ -986,10 +971,25 @@ layer {
   }
 }
 
+
+layer {
+  name: "slice_mask"
+  type: "Slice"
+  bottom: "mask_score"
+  top: "mask_score_all"
+  top: "mask_score_16"
+  slice_param {
+    axis: 0
+    slice_point: 6
+  }
+  include: { phase: TRAIN }
+}
+
+
 layer {
   name: "mask_score_filter"
   type: "GradientSilent"
-  bottom: "mask_score"
+  bottom: "mask_score_16"
   bottom: "need_backprop"
   top: "mask_score_filter"
 }
@@ -1251,7 +1251,7 @@ layer {
 layer {
   name: "dmask_conv_grl"
   type: "GradientScaler"
-  bottom: "mask_deconv3_all"
+  bottom: "mask_score_all"
   top: "dmask_conv_grl"
   gradient_scaler_param {
     scale_factor: -0.1
