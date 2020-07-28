@@ -1,7 +1,26 @@
-## [AffordanceNet: An End-to-End Deep Learning Approach for Object Affordance Detection](https://arxiv.org/pdf/1709.07326.pdf)
-By Thanh-Toan Do\*, Anh Nguyen\*, Ian Reid (\* equal contribution)
+# AffordanceNet_DA
+
+This is the implementation of our RA-L work 'Learning Affordance Segmentation for Real-world Robotic Manipulation via Synthetic Images'. The framework segments affordance maps by jointly detecting and localizing candidate regions within an image. Rather than requiring annotated real-world images, the framework learns
+from synthetic data and adapts to real-world data without supervision. The original arxiv paper can be found [here](https://ieeexplore.ieee.org/abstract/document/8620534).
 
 ![affordance-net](https://raw.githubusercontent.com/nqanh/affordance-net/master/tools/temp_output/iit_aff_dataset.jpg "affordance-net")
+
+If you find it helpful for your research, please consider citing:
+
+    @inproceedings{chu2019learning,
+      title = {Learning Affordance Segmentation for Real-world Robotic Manipulation via Synthetic Images},
+      author = {F. Chu and R. Xu and P. A. Vela},
+      journal = {IEEE Robotics and Automation Letters},
+      year = {2019},
+      volume = {4},
+      number = {2},
+      pages = {1140-1147},
+      DOI = {10.1109/LRA.2019.2894439},
+      ISSN = {2377-3766},
+      month = {April}
+    }
+
+------------------------------------
 
 ### Contents
 1. [Requirements](#requirements)
@@ -94,35 +113,16 @@ After successfully completing installation, you'll be ready to run the demo.
 	- Prepare the affordance masks (as in `$AffordanceNet_ROOT/data/cache` folder): For each object in the image, we need to create a mask and save as a .sm file. See `$AffordanceNet_ROOT/utils` for details.
 
 
-### Citing AffordanceNet
-
-If you find AffordanceNet useful in your research, please consider citing:
-
-	@inproceedings{AffordanceNet18,
-	  title={AffordanceNet: An End-to-End Deep Learning Approach for Object Affordance Detection},
-	  author={Do, Thanh-Toan and Nguyen, Anh and Reid, Ian},
-	  booktitle={International Conference on Robotics and Automation (ICRA)},
-	  year={2018}
-	}
-
-
-If you use [IIT-AFF dataset](https://sites.google.com/site/iitaffdataset/), please consider citing:
-
-	@inproceedings{Nguyen17,
-	  title={Object-Based Affordances Detection with Convolutional Neural Networks and Dense Conditional Random Fields},
-	  author={Nguyen, Anh and Kanoulas, Dimitrios and Caldwell, Darwin G and Tsagarakis, Nikos G},
-	  booktitle = {IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
-	  year={2017},
-	}
-
 
 ### License
 MIT License
 
-### Acknowledgement
-This repo used a lot of source code from [Faster-RCNN](https://github.com/rbgirshick/py-faster-rcnn)
+### Acknowledgment
+This repo borrows tons of code from
+- [affordanceNet](https://github.com/nqanh/affordance-net) by nqanh
+- [da-faster-rcnn](https://github.com/yuhuayc/da-faster-rcnn) by yuhuayc
 
 
 ### Contact
-If you have any questions or comments, please send us an email: `thanh-toan.do@adelaide.edu.au` and `anh.nguyen@iit.it`
+If you encounter any questions, please contact me at fujenchu[at]gatech[dot]edu
 
