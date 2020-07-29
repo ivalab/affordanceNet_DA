@@ -447,14 +447,11 @@ message LossParameter {
     // Do not normalize the loss.
     NONE = 3;
   }
-  optional NormalizationMode normalization = 5 [default = VALID];
+  optional NormalizationMode normalization = 3 [default = VALID];
   // Deprecated.  Ignored if normalization is specified.  If normalization
   // is not specified, then setting this to false will be equivalent to
   // normalization = BATCH_SIZE to be consistent with previous behavior.
-  optional bool weight_by_label_freqs = 3 [default = false]; 
-  optional bool normalize = 2 [default = true];
-  repeated float class_weighting = 4;
-
+  optional bool normalize = 2;
 }
 
 // Messages that store parameters used by individual layer types follow, in

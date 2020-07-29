@@ -417,9 +417,16 @@ class ProposalTargetLayer(caffe.Layer):
 
         if cfg.TRAIN.MASK_REG:
 #             ################### Toan mask target##########################
+            ## limited to one
+            #mask_targets = mask_targets[:1,:,:]
             top[5].reshape(*mask_targets.shape)
             top[5].data[...] = mask_targets
             ####incase output rois_pos
+            ## limited to one
+            #print "original rois_pos.shape"
+            #print rois_pos.shape
+
+            #rois_pos = rois_pos[:1,:]
             top[6].reshape(*rois_pos.shape)
             top[6].data[...] = rois_pos
 

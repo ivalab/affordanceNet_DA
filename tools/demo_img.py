@@ -291,7 +291,8 @@ if __name__ == '__main__':
     
     
     prototxt = root_path + '/models/pascal_voc/VGG16/faster_rcnn_end2end/test.prototxt'
-    caffemodel = root_path + '/pretrained/vgg16_faster_rcnn_iter_10000.caffemodel'   
+    caffemodel = root_path + '/pretrained/vgg16_faster_rcnn_iter_70000.caffemodel'   
+    #caffemodel = root_path + '/output/faster_rcnn_end2end/voc_2012_train/model10/vgg16_faster_rcnn_iter_2000_new.caffemodel'   
     
     if not os.path.isfile(caffemodel):
         raise IOError(('{:s} not found.\n').format(caffemodel))

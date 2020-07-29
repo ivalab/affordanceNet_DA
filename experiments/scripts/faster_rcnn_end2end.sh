@@ -56,9 +56,9 @@ exec &> >(tee -a "$LOG")
 echo Logging output to "$LOG"
 #--weights data/imagenet_models/${NET}.v2.caffemodel \
 #--weights ${INIT_MODEL} \
-time ./tools/train_net.py --gpu ${GPU_ID} \
+time /usr/bin/python ./tools/train_net.py --gpu ${GPU_ID} \
   --solver models/${PT_DIR}/${NET}/faster_rcnn_end2end/solver.prototxt \
-  --weights data/imagenet_models/${NET}.v2.caffemodel \
+  --weights data/imagenet_models/vgg16_faster_rcnn_iter_208000.caffemodel \
   --imdb ${TRAIN_IMDB} \
   --iters ${ITERS} \
   --cfg experiments/cfgs/faster_rcnn_end2end.yml \

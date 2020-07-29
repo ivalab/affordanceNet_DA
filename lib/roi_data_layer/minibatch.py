@@ -311,13 +311,57 @@ def get_minibatch(roidb, num_classes):
     im_name = roidb[0]['image'] #full name
     im_name_base = os.path.basename(im_name)
 
-    if int(os.path.splitext(im_name_base)[0]) > 36800: # target image
+    # train list in target
+    RATIO = 0.75
+    allIndex = range(66288)
+    bowl_train_target_list = allIndex[37200:37437]+allIndex[37437:37667]+allIndex[37915:38165]+allIndex[38376:38588]+allIndex[38847:39130]
+    cup_train_target_list = allIndex[39839:40093]+allIndex[40093:40356]+allIndex[40356:40599]
+    hammer_train_target_list = allIndex[41666:41925]+allIndex[42205:42510]
+    knife_train_target_list = allIndex[42752:43023]+allIndex[43023:43228]+allIndex[43228:43593]+allIndex[43878:44192]+allIndex[44425:44756]+allIndex[45599:45958]
+    ladle_train_target_list = allIndex[45958:46311]+allIndex[46529:46768]+allIndex[46768:47125]
+    mallet_train_target_list = allIndex[47779:48038]+allIndex[48327:48595]
+    mug_train_target_list = allIndex[49158:49439]+allIndex[49439:49657]+allIndex[50680:50980]+allIndex[50980:51208]+allIndex[51505:51762]+allIndex[52253:52497]+allIndex[52497:52761]+allIndex[52761:53027]+allIndex[53027:53254]+allIndex[53503:53845]
+    pot_train_target_list = allIndex[54077:54330]
+    saw_train_target_list = allIndex[54330:54604]+allIndex[54604:54885]
+    scissors_train_target_list = allIndex[55225:55494]+allIndex[55748:55996]+allIndex[56281:56542]+allIndex[56542:56848]
+    scoop_train_target_list = allIndex[57644:57914]
+    shear_train_target_list = allIndex[58196:58527] 
+    shovel_train_target_list = allIndex[58527:58760]
+    spoon_train_target_list = allIndex[59298:59546]+allIndex[59546:59860]+allIndex[59860:60139]+allIndex[60683:60969]+allIndex[60969:61230]
+    tenderizer_train_target_list = allIndex[62134:62462]
+    trowel_train_target_list = allIndex[62462:62780]+allIndex[62780:63010]+allIndex[63479:63726]
+    turner_train_target_list = allIndex[63726:63948]+allIndex[63948:64219]+allIndex[64219:64534]+allIndex[64534:64828]
+
+    import random
+    bowl = random.sample(bowl_train_target_list, int(len(bowl_train_target_list)*RATIO))
+    cup = random.sample(cup_train_target_list, int(len(cup_train_target_list)*RATIO))
+    hammer = random.sample(hammer_train_target_list, int(len(hammer_train_target_list)*RATIO))
+    knife = random.sample(knife_train_target_list, int(len(knife_train_target_list)*RATIO))
+    ladle = random.sample(ladle_train_target_list, int(len(ladle_train_target_list)*RATIO))
+    mallet = random.sample(mallet_train_target_list, int(len(mallet_train_target_list)*RATIO))
+    mug = random.sample(mug_train_target_list, int(len(mug_train_target_list)*RATIO))
+    pot = random.sample(pot_train_target_list, int(len(pot_train_target_list)*RATIO))
+    saw = random.sample(saw_train_target_list, int(len(saw_train_target_list)*RATIO))
+    scissors = random.sample(scissors_train_target_list, int(len(scissors_train_target_list)*RATIO))
+    scoop = random.sample(scoop_train_target_list, int(len(scoop_train_target_list)*RATIO))
+    shear = random.sample(shear_train_target_list, int(len(shear_train_target_list)*RATIO))
+    shovel = random.sample(shovel_train_target_list, int(len(shovel_train_target_list)*RATIO))
+    spoon = random.sample(spoon_train_target_list, int(len(spoon_train_target_list)*RATIO))
+    tenderizer = random.sample(tenderizer_train_target_list, int(len(tenderizer_train_target_list)*RATIO))
+    trowel = random.sample(trowel_train_target_list, int(len(trowel_train_target_list)*RATIO))
+    turner = random.sample(turner_train_target_list, int(len(turner_train_target_list)*RATIO))
+    train_target_list = bowl+cup+hammer+knife+ladle+mallet+mug+pot+saw+scissors+scoop+shear+shovel+spoon+tenderizer+trowel+turner
+
+    #if int(os.path.splitext(im_name_base)[0]) > 37200: # target image
+    if int(os.path.splitext(im_name_base)[0]) in train_target_list: # target image
         blobs['need_backprop'] = np.zeros((1,),dtype=np.float32)
         blobs['dc_label'] = np.zeros((2000, 1),dtype=np.float32)
+        #print "target"
 
     else: # pascal image
         blobs['need_backprop'] = np.ones((1,),dtype=np.float32)
         blobs['dc_label'] = np.ones((2000, 1),dtype=np.float32)
+        #print "source"
         
     if cfg.TRAIN.HAS_RPN: #=TRUE neu la end2end (xem file faster_rcnn_end2end.yml)
         assert len(im_scales) == 1, "Single batch only"

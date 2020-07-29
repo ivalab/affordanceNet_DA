@@ -30,11 +30,11 @@ class PredToProposalLayer(caffe.Layer):
         # rois_for_mask (0, x1, y1, x2, y2)
         top[0].reshape(1, 5)
         # rois_class_score
-        top[1].reshape(1, 1)
+        top[1].reshape(1, 1)#FC
         # rois_class_ind
-        top[2].reshape(1, 1)
+        top[2].reshape(1, 1)#FC
         # rois_final
-        top[3].reshape(1, 5)
+        top[3].reshape(1, 5)#FC
 
     def forward(self, bottom, top):
         # Proposal ROIs (0, x1, y1, x2, y2) coming from RPN
@@ -147,8 +147,11 @@ class PredToProposalLayer(caffe.Layer):
 
         # rois_for_mask
         # print ("===========OK or NOT========")
+        #print "original rois_for_mask.shape"
+        #print rois_for_mask.shape
         top[0].reshape(*rois_for_mask.shape)
         top[0].data[...] = rois_for_mask
+
         # print ("===========OK or NOT========")
         # classification score
         top[1].reshape(*rois_class_score.shape)
