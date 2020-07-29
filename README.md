@@ -57,8 +57,8 @@ cd ..
 ```
 
 4. Download pretrained models
-- trained model for DEMO on [dropbox](https://www.dropbox.com/s/u28kllclmv8rb6f/vgg16_faster_rcnn_iter_70000.caffemodel?dl=0) 
-- put under `./pretrained/`
+    - trained model for DEMO on [dropbox](https://www.dropbox.com/s/u28kllclmv8rb6f/vgg16_faster_rcnn_iter_70000.caffemodel?dl=0) 
+    - put under `./pretrained/`
 
 5. Demo
 ```
